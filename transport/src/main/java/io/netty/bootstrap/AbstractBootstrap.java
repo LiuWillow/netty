@@ -323,6 +323,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
         try {
             //反射的方式创建channel
             channel = channelFactory.newChannel();
+            //初始化options、attributeKey，添加handlerAdded的task
             init(channel);
         } catch (Throwable t) {
             if (channel != null) {
@@ -335,6 +336,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
             return new DefaultChannelPromise(new FailedChannel(), GlobalEventExecutor.INSTANCE).setFailure(t);
         }
 
+        //通过一个选择器，选择一个eventLoop来执行注册，底层利用Jdk的nio技术
         ChannelFuture regFuture = config().group().register(channel);
         if (regFuture.cause() != null) {
             if (channel.isRegistered()) {
