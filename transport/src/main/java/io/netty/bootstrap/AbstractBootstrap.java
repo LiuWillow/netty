@@ -103,6 +103,8 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
         if (channelClass == null) {
             throw new NullPointerException("channelClass");
         }
+        //ReflectiveChannelFactory里保存了给定类的构造器
+        //channelFactory方法给AbstractBootstrap里的channelFactory赋值，还没有创建channel实例
         return channelFactory(new ReflectiveChannelFactory<C>(channelClass));
     }
 
@@ -275,10 +277,12 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
         if (localAddress == null) {
             throw new NullPointerException("localAddress");
         }
+        //netty标准，私有方法用do开头
         return doBind(localAddress);
     }
 
     private ChannelFuture doBind(final SocketAddress localAddress) {
+        //初始化channel并注册到group
         final ChannelFuture regFuture = initAndRegister();
         final Channel channel = regFuture.channel();
         if (regFuture.cause() != null) {

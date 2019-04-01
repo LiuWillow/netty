@@ -36,8 +36,8 @@ import java.util.concurrent.ThreadFactory;
 public class NioEventLoopGroup extends MultithreadEventLoopGroup {
 
     /**
-     * Create a new instance using the default number of threads, the default {@link ThreadFactory} and
-     * the {@link SelectorProvider} which is returned by {@link SelectorProvider#provider()}.
+     * 用默认线程数创建一个实例，如果传入的线程数不为0，则使用该线程数，否则使用内核数* 2，只是做了部分数据的初始化
+     * 通常设置为1就行
      */
     public NioEventLoopGroup() {
         this(0);
@@ -59,6 +59,9 @@ public class NioEventLoopGroup extends MultithreadEventLoopGroup {
         this(nThreads, threadFactory, SelectorProvider.provider());
     }
 
+    /**
+     * provider是nio里的类，可以创建Selector
+     */
     public NioEventLoopGroup(int nThreads, Executor executor) {
         this(nThreads, executor, SelectorProvider.provider());
     }
@@ -82,6 +85,9 @@ public class NioEventLoopGroup extends MultithreadEventLoopGroup {
         this(nThreads, executor, selectorProvider, DefaultSelectStrategyFactory.INSTANCE);
     }
 
+    /**
+     * 到MultithreadEventLoopGroup
+     */
     public NioEventLoopGroup(int nThreads, Executor executor, final SelectorProvider selectorProvider,
                              final SelectStrategyFactory selectStrategyFactory) {
         super(nThreads, executor, selectorProvider, selectStrategyFactory, RejectedExecutionHandlers.reject());

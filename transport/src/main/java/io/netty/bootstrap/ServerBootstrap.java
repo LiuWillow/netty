@@ -73,11 +73,13 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
     }
 
     /**
+     * 给parentGroup和childGroup赋值
      * Set the {@link EventLoopGroup} for the parent (acceptor) and the child (client). These
      * {@link EventLoopGroup}'s are used to handle all the events and IO for {@link ServerChannel} and
      * {@link Channel}'s.
      */
     public ServerBootstrap group(EventLoopGroup parentGroup, EventLoopGroup childGroup) {
+        //prentGroup在父类AbstractBootstrap中
         super.group(parentGroup);
         if (childGroup == null) {
             throw new NullPointerException("childGroup");

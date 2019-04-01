@@ -46,6 +46,7 @@ public abstract class MultithreadEventLoopGroup extends MultithreadEventExecutor
     }
 
     /**
+     * 如果等于0，就用netty默认的线程机制计算线程数，即服务器实际内核 * 2 （超线程技术）* 2个线程数
      * @see MultithreadEventExecutorGroup#MultithreadEventExecutorGroup(int, Executor, Object...)
      */
     protected MultithreadEventLoopGroup(int nThreads, Executor executor, Object... args) {
