@@ -63,7 +63,7 @@ public class FastThreadLocal<V> {
                 Set<FastThreadLocal<?>> variablesToRemove = (Set<FastThreadLocal<?>>) v;
                 FastThreadLocal<?>[] variablesToRemoveArray =
                         variablesToRemove.toArray(new FastThreadLocal[0]);
-                for (FastThreadLocal<?> tlv: variablesToRemoveArray) {
+                for (FastThreadLocal<?> tlv : variablesToRemoveArray) {
                     tlv.remove(threadLocalMap);
                 }
             }
@@ -96,15 +96,19 @@ public class FastThreadLocal<V> {
 
     @SuppressWarnings("unchecked")
     private static void addToVariablesToRemove(InternalThreadLocalMap threadLocalMap, FastThreadLocal<?> variable) {
+        //这个v是从lookup数组里拿到的
         Object v = threadLocalMap.indexedVariable(variablesToRemoveIndex);
         Set<FastThreadLocal<?>> variablesToRemove;
         if (v == InternalThreadLocalMap.UNSET || v == null) {
+            //如果值为空，则初始化一个set，里面放空的FastThreadLocal，Boolean，设置到lookup对应的元素位置
             variablesToRemove = Collections.newSetFromMap(new IdentityHashMap<FastThreadLocal<?>, Boolean>());
             threadLocalMap.setIndexedVariable(variablesToRemoveIndex, variablesToRemove);
         } else {
+            //如果值不为空，也就是之前已经放过map了，就把variablesToRemove引用指向这个map
             variablesToRemove = (Set<FastThreadLocal<?>>) v;
         }
 
+        //然后在map里记录当前的fastThreadLocal，//TODO 但是不知道干嘛用
         variablesToRemove.add(variable);
     }
 
@@ -122,6 +126,8 @@ public class FastThreadLocal<V> {
         variablesToRemove.remove(variable);
     }
 
+    //唯一定位这个fastThreadLocal的值，由InternalThreadLocalMap里的一个AtomicInteger变量决定，
+    // 在remove的时候也是根据这个index来移除threadLocalMap的内容
     private final int index;
 
     public FastThreadLocal() {
@@ -146,10 +152,12 @@ public class FastThreadLocal<V> {
 
     private void registerCleaner(final InternalThreadLocalMap threadLocalMap) {
         Thread current = Thread.currentThread();
+        //判断是否是fastThreadLocalThread并且cleanup的标识为true  或者  cleanerFlags的bitSet对应的位置被赋值了
         if (FastThreadLocalThread.willCleanupFastThreadLocals(current) || threadLocalMap.isCleanerFlagSet(index)) {
             return;
         }
 
+        //在bitSet对应的位置设置值，应该是为了后面清理垃圾用的吧
         threadLocalMap.setCleanerFlag(index);
 
         // TODO: We need to find a better way to handle this.
@@ -203,6 +211,7 @@ public class FastThreadLocal<V> {
         if (value != InternalThreadLocalMap.UNSET) {
             InternalThreadLocalMap threadLocalMap = InternalThreadLocalMap.get();
             if (setKnownNotUnset(threadLocalMap, value)) {
+                //值添加成功，设置cleaner的bitMap对应位置的值
                 registerCleaner(threadLocalMap);
             }
         } else {
@@ -227,7 +236,7 @@ public class FastThreadLocal<V> {
     private boolean setKnownNotUnset(InternalThreadLocalMap threadLocalMap, V value) {
         //先set到lookup数组里
         if (threadLocalMap.setIndexedVariable(index, value)) {
-            //
+            //把当前线程的threadLocalMap和threadLocal记录下来
             addToVariablesToRemove(threadLocalMap, this);
             return true;
         }
@@ -248,6 +257,7 @@ public class FastThreadLocal<V> {
     public final boolean isSet(InternalThreadLocalMap threadLocalMap) {
         return threadLocalMap != null && threadLocalMap.isIndexedVariableSet(index);
     }
+
     /**
      * Sets the value to uninitialized; a proceeding call to get() will trigger a call to initialValue().
      */
@@ -269,6 +279,7 @@ public class FastThreadLocal<V> {
         Object v = threadLocalMap.removeIndexedVariable(index);
         removeFromVariablesToRemove(threadLocalMap, this);
 
+        //不等于UNSET表示移除成功
         if (v != InternalThreadLocalMap.UNSET) {
             try {
                 onRemoval((V) v);
@@ -290,5 +301,6 @@ public class FastThreadLocal<V> {
      * is not guaranteed to be called when the `Thread` completes which means you can not depend on this for
      * cleanup of the resources in the case of `Thread` completion.
      */
-    protected void onRemoval(@SuppressWarnings("UnusedParameters") V value) throws Exception { }
+    protected void onRemoval(@SuppressWarnings("UnusedParameters") V value) throws Exception {
+    }
 }
