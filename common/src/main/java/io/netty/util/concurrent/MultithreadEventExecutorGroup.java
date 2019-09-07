@@ -20,6 +20,7 @@ import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -76,6 +77,8 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
             executor = new ThreadPerTaskExecutor(newDefaultThreadFactory());
         }
 
+        //TODO eventExecutorGroup和eventLoopGroup，为啥要这么定义
+        // eventLoop和eventExecutor本质是一个东西，loop集成executor，所以eventExecutorGroup和eventLoopGroup本质也差不多
         children = new EventExecutor[nThreads];
 
         for (int i = 0; i < nThreads; i ++) {

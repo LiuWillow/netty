@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:v-bind="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <!-- 引入组件库 -->
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+
+</head>
+<body>
+<div id="app">
+    {{ message }}
+</div>
+
+</body>
+<!--开发环境版本，包含有帮助的命令警告-->
+<script type="application/javascript">
+    var app = new Vue({
+        el: '#app',
+        data: {
+            message: 'Hello Vue!'
+        },
+        created: function () {
+            console.log(this);
+            var wb = new WebSocket("ws://localhost:8899/lwl/ws");
+            wb.onopen = function (ev) {
+                console.log("wesocket is open now");
+                setInterval(function () {
+                    if (wb.CLOSED)
+                    wb.send("heart beat from client");
+                    console.log("发送心跳")
+                }, 5000);
+            }
+
+            wb.onclose = function (ev) {
+                console.log("wbsocket is close")
+            }
+        }
+    });
+</script>
+<!-- 生产环境版本，优化了尺寸和速度 -->
+<!--<script src="https://cdn.jsdelivr.net/npm/vue"></script>-->
+
+</html>

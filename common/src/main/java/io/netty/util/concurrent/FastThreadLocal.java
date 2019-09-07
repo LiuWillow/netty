@@ -199,6 +199,7 @@ public class FastThreadLocal<V> {
      * Set the value for the current thread.
      */
     public final void set(V value) {
+        //如果value不是初始化的new Object()
         if (value != InternalThreadLocalMap.UNSET) {
             InternalThreadLocalMap threadLocalMap = InternalThreadLocalMap.get();
             if (setKnownNotUnset(threadLocalMap, value)) {
@@ -224,7 +225,9 @@ public class FastThreadLocal<V> {
      * @return see {@link InternalThreadLocalMap#setIndexedVariable(int, Object)}.
      */
     private boolean setKnownNotUnset(InternalThreadLocalMap threadLocalMap, V value) {
+        //先set到lookup数组里
         if (threadLocalMap.setIndexedVariable(index, value)) {
+            //
             addToVariablesToRemove(threadLocalMap, this);
             return true;
         }

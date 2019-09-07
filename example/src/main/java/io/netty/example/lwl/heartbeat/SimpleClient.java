@@ -1,4 +1,4 @@
-package io.netty.example.lwl;
+package io.netty.example.lwl.heartbeat;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;

@@ -1,4 +1,4 @@
-package io.netty.example.lwl;
+package io.netty.example.lwl.heartbeat;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;

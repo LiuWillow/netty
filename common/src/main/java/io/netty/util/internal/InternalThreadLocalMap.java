@@ -59,17 +59,22 @@ public final class InternalThreadLocalMap extends UnpaddedInternalThreadLocalMap
 
     public static InternalThreadLocalMap getIfSet() {
         Thread thread = Thread.currentThread();
+        //这个又为啥是fast
         if (thread instanceof FastThreadLocalThread) {
             return ((FastThreadLocalThread) thread).threadLocalMap();
         }
+        //TODO 这个为啥是slow
         return slowThreadLocalMap.get();
     }
 
     public static InternalThreadLocalMap get() {
         Thread thread = Thread.currentThread();
+        //如果当前线程是fastThreadLocalThread，则直接从thread里获取fastThreadLocalMap
         if (thread instanceof FastThreadLocalThread) {
             return fastGet((FastThreadLocalThread) thread);
         } else {
+            //否则，从每个线程中存储的ThreadLocal<InternalThreadLocalMap>来获取，这样就得走一遍threadLocal的get流程，
+            //相对上面那个会慢一点点
             return slowGet();
         }
     }
@@ -284,6 +289,7 @@ public final class InternalThreadLocalMap extends UnpaddedInternalThreadLocalMap
         this.localChannelReaderStackDepth = localChannelReaderStackDepth;
     }
 
+    //根据index获取下标元素
     public Object indexedVariable(int index) {
         Object[] lookup = indexedVariables;
         return index < lookup.length? lookup[index] : UNSET;
