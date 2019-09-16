@@ -49,6 +49,7 @@ import java.util.Map;
  */
 public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C extends Channel> implements Cloneable {
 
+    //指接收任务的group
     volatile EventLoopGroup group;
     @SuppressWarnings("deprecation")
     private volatile ChannelFactory<? extends C> channelFactory;
@@ -95,9 +96,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
     }
 
     /**
-     * The {@link Class} which is used to create {@link Channel} instances from.
-     * You either use this or {@link #channelFactory(io.netty.channel.ChannelFactory)} if your
-     * {@link Channel} implementation has no no-args constructor.
+     * 给channelFactory里的constructor赋值，还没有开始实例化
      */
     public B channel(Class<? extends C> channelClass) {
         if (channelClass == null) {
@@ -249,7 +248,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
     }
 
     /**
-     * Create a new {@link Channel} and bind it.
+     * 创建一个channel并绑定端口
      */
     public ChannelFuture bind(int inetPort) {
         return bind(new InetSocketAddress(inetPort));
@@ -282,7 +281,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
     }
 
     private ChannelFuture doBind(final SocketAddress localAddress) {
-        //初始化channel并注册到group
+        //用channelFactory反射创建channel，选择一个eventLoop异步注册channel，并返回注册任务的future
         final ChannelFuture regFuture = initAndRegister();
         final Channel channel = regFuture.channel();
         if (regFuture.cause() != null) {
@@ -290,12 +289,12 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
         }
 
         if (regFuture.isDone()) {
-            // At this point we know that the registration was complete and successful.
+            // 如果channel注册的任务已经完成了，就执行绑定
             ChannelPromise promise = channel.newPromise();
             doBind0(regFuture, channel, localAddress, promise);
             return promise;
         } else {
-            // Registration future is almost always fulfilled already, but just in case it's not.
+            // 万一任务还没完成，就给它加一个监听器，一旦监听到任务完成，就执行doBind0
             final PendingRegistrationPromise promise = new PendingRegistrationPromise(channel);
             regFuture.addListener(new ChannelFutureListener() {
                 @Override
@@ -306,8 +305,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
                         // IllegalStateException once we try to access the EventLoop of the Channel.
                         promise.setFailure(cause);
                     } else {
-                        // Registration was successful, so set the correct executor to use.
-                        // See https://github.com/netty/netty/issues/2586
+                        //设置registered为true
                         promise.registered();
 
                         doBind0(regFuture, channel, localAddress, promise);
@@ -321,7 +319,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
     final ChannelFuture initAndRegister() {
         Channel channel = null;
         try {
-            //反射的方式创建channel
+            //反射的方式创建NioServerSocketChannel，就是用jdk的provider创建channel，然后用netty的channel封装起来，并初始化pipeline
             channel = channelFactory.newChannel();
             //初始化options、attributeKey，添加handlerAdded的task
             init(channel);
@@ -336,7 +334,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
             return new DefaultChannelPromise(new FailedChannel(), GlobalEventExecutor.INSTANCE).setFailure(t);
         }
 
-        //通过一个选择器，选择一个eventLoop来执行注册，底层利用Jdk的nio技术
+        //选择一个eventLoop来执行异步注册，返回一个future，底层利用Jdk的nio
         ChannelFuture regFuture = config().group().register(channel);
         if (regFuture.cause() != null) {
             if (channel.isRegistered()) {

@@ -64,7 +64,7 @@ public class DefaultPromise<V> extends AbstractFuture<V> implements Promise<V> {
      */
     private boolean notifyingListeners;
 
-    /**
+    /** promise就是特殊的future，是可写入的
      * Creates a new instance.
      *
      * It is preferable to use {@link EventExecutor#newPromise()} to create a new promise

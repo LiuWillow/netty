@@ -36,9 +36,14 @@ public abstract class AbstractNioMessageChannel extends AbstractNioChannel {
     boolean inputShutdown;
 
     /**
-     * @see AbstractNioChannel#AbstractNioChannel(Channel, SelectableChannel, int)
+     * 调用父类构造器，初始化channelId，unSafe工具类，pipeline头尾节点
      */
     protected AbstractNioMessageChannel(Channel parent, SelectableChannel ch, int readInterestOp) {
+        /**
+         * parent  null
+         * ch  jdk刚创建好的channel
+         * readInterestOp  连接事件
+         */
         super(parent, ch, readInterestOp);
     }
 

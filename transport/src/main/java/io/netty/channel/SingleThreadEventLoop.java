@@ -55,7 +55,9 @@ public abstract class SingleThreadEventLoop extends SingleThreadEventExecutor im
     protected SingleThreadEventLoop(EventLoopGroup parent, Executor executor,
                                     boolean addTaskWakesUp, int maxPendingTasks,
                                     RejectedExecutionHandler rejectedExecutionHandler) {
+        //addTaskWakesUp是false
         super(parent, executor, addTaskWakesUp, maxPendingTasks, rejectedExecutionHandler);
+        //TODO 父类里有一个taskQueue队列，这里又有一个tailTasks，暂时不知道区别
         tailTasks = newTaskQueue(maxPendingTasks);
     }
 

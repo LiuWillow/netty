@@ -53,11 +53,7 @@ public class NioServerSocketChannel extends AbstractNioMessageChannel
     private static ServerSocketChannel newSocket(SelectorProvider provider) {
         try {
             /**
-             * 调用nio的provider打开channel
-             *  Use the {@link SelectorProvider} to open {@link SocketChannel} and so remove condition in
-             *  {@link SelectorProvider#provider()} which is called by each ServerSocketChannel.open() otherwise.
-             *
-             *  See <a href="https://github.com/netty/netty/issues/2308">#2308</a>.
+             * 调用nio的provider打开jdk的channel
              */
             return provider.openServerSocketChannel();
         } catch (IOException e) {
@@ -69,7 +65,10 @@ public class NioServerSocketChannel extends AbstractNioMessageChannel
     private final ServerSocketChannelConfig config;
 
     /**
-     * Create a new instance
+     * newSocket调用jdk的provider创建一个serverSocketChannel，
+     * 然后将这个channel传入当前构造函数，将OP_ACCEPT赋值给该类
+     * 创建channelConfig并赋值
+     * 初始化unSafe和pipeline，pipeline里初始化头尾节点...Context，context本质上是inoutbountHandler
      */
     public NioServerSocketChannel() {
         this(newSocket(DEFAULT_SELECTOR_PROVIDER));
@@ -83,9 +82,10 @@ public class NioServerSocketChannel extends AbstractNioMessageChannel
     }
 
     /**
-     * Create a new instance using the given {@link ServerSocketChannel}.
+     * 用jdk的serverSocketChannel初始化nioServerSocketChannel
      */
     public NioServerSocketChannel(ServerSocketChannel channel) {
+        //将selectionKey保存到AbstractNioChannel类中，调用父类构造器，初始化channelId，unSafe工具类，pipeline头尾节点
         super(null, channel, SelectionKey.OP_ACCEPT);
         config = new NioServerSocketChannelConfig(this, javaChannel().socket());
     }

@@ -32,9 +32,12 @@ public final class DefaultEventExecutorChooserFactory implements EventExecutorCh
     @SuppressWarnings("unchecked")
     @Override
     public EventExecutorChooser newChooser(EventExecutor[] executors) {
+        //这里的chooser提供next方法，计算executors的下标，返回一个eventExecutor
         if (isPowerOfTwo(executors.length)) {
+            //长度为2的幂次
             return new PowerOfTwoEventExecutorChooser(executors);
         } else {
+            //普通选择器
             return new GenericEventExecutorChooser(executors);
         }
     }
@@ -53,6 +56,7 @@ public final class DefaultEventExecutorChooserFactory implements EventExecutorCh
 
         @Override
         public EventExecutor next() {
+            //如果长度是2次幂，那么用&的方式来计算index，可以快一点点
             return executors[idx.getAndIncrement() & executors.length - 1];
         }
     }

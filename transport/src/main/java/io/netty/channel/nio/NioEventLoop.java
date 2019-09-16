@@ -140,6 +140,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
             throw new NullPointerException("selectStrategy");
         }
         provider = selectorProvider;
+        //TODO 打开nio的selector，并将tuple的unwrappedSelector和selector都赋值为该selector，也不知道有啥区别
         final SelectorTuple selectorTuple = openSelector();
         selector = selectorTuple.selector;
         unwrappedSelector = selectorTuple.unwrappedSelector;

@@ -25,7 +25,7 @@ import io.netty.util.CharsetUtil;
  */
 public class SimpleServer {
     public static void main(String[] args) {
-        EventLoopGroup bossGroup = new NioEventLoopGroup();
+        EventLoopGroup bossGroup = new NioEventLoopGroup(1);
         EventLoopGroup workerGroup = new NioEventLoopGroup();
         ServerBootstrap serverBootstrap = new ServerBootstrap();
         try {

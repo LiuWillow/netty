@@ -74,6 +74,7 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
         }
 
         if (executor == null) {
+            //创建了executor，里面有一个threadFactory，每次调用executor的execute()方法，都会调用threadFactory的newThread方法，创建一个fastThreadLocalThread
             executor = new ThreadPerTaskExecutor(newDefaultThreadFactory());
         }
 
@@ -84,12 +85,14 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
         for (int i = 0; i < nThreads; i ++) {
             boolean success = false;
             try {
+                //初始化eventExecutor，一般是NioEventLoop
                 children[i] = newChild(executor, args);
                 success = true;
             } catch (Exception e) {
                 // TODO: Think about if this is a good exception type
                 throw new IllegalStateException("failed to create a child event loop", e);
             } finally {
+                //不成功的话，把EventLoop一个个关闭，并将对应的线程停止
                 if (!success) {
                     for (int j = 0; j < i; j ++) {
                         children[j].shutdownGracefully();
@@ -111,8 +114,10 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
             }
         }
 
+        //初始化eventLoop选择器
         chooser = chooserFactory.newChooser(children);
 
+        //初始化关闭监听器，添加到所有的executor的future中，暂时不知道干嘛的
         final FutureListener<Object> terminationListener = new FutureListener<Object>() {
             @Override
             public void operationComplete(Future<Object> future) throws Exception {

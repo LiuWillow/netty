@@ -92,9 +92,10 @@ public class DefaultChannelPipeline implements ChannelPipeline {
 
     protected DefaultChannelPipeline(Channel channel) {
         this.channel = ObjectUtil.checkNotNull(channel, "channel");
+        //TODO 这两个future不晓得干哈的
         succeededFuture = new SucceededChannelFuture(channel, null);
         voidPromise =  new VoidChannelPromise(channel, true);
-
+        //初始化联表，头尾都是当前pipeline的handlerContext，本质是ChannelInboundHandler，context里保存了prev和next
         tail = new TailContext(this);
         head = new HeadContext(this);
 
@@ -203,7 +204,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
             checkMultiplicity(handler);
 
             newCtx = newContext(group, filterName(name, handler), handler);
-
+            //context加入联表
             addLast0(newCtx);
 
             //启动的时候，还没有被注册，因此调用这里

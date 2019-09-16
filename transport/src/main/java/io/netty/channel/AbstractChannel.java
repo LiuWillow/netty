@@ -74,13 +74,14 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
     private String strVal;
 
     /**
-     * Creates a new instance.
+     * 初始化id，赋值parent，创建pipeline，初始化pipeline里的handler执行联表
      *
      * @param parent
      *        the parent of this channel. {@code null} if there's no parent.
      */
     protected AbstractChannel(Channel parent) {
         this.parent = parent;
+        //根据机器号、进程号、随机数等等创建一个id，包含长text和短text
         id = newId();
         unsafe = newUnsafe();
         pipeline = newChannelPipeline();
@@ -116,6 +117,8 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
      * Returns a new {@link DefaultChannelPipeline} instance.
      */
     protected DefaultChannelPipeline newChannelPipeline() {
+        //用DefaultChannelPipeline，初始化了一个用fastThreadLocal定义的namecache，
+        // 初始化pipeline的执行联表，节点是封装了pipeline的abstractContext
         return new DefaultChannelPipeline(this);
     }
 
@@ -498,6 +501,10 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
             }
         }
 
+        /**
+         * 将channel注册到selector上，执行handlerAdded方法，触发channelRegistered事件，如果进入了active状态，触发active事件
+         * @param promise
+         */
         private void register0(ChannelPromise promise) {
             try {
                 // check if the channel is still open as it could be closed in the mean time when the register
@@ -506,10 +513,11 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                     return;
                 }
                 boolean firstRegistration = neverRegistered;
+                //直接通过nio将channel注册到selector上
                 doRegister();
                 neverRegistered = false;
                 registered = true;
-
+                //
                 // Ensure we call handlerAdded(...) before we actually notify the promise. This is needed as the
                 // user may already fire events through the pipeline in the ChannelFutureListener.
                 pipeline.invokeHandlerAddedIfNeeded();
@@ -560,6 +568,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
 
             boolean wasActive = isActive();
             try {
+                //这里调用nio的接口去绑定端口和channel
                 doBind(localAddress);
             } catch (Throwable t) {
                 safeSetFailure(promise, t);

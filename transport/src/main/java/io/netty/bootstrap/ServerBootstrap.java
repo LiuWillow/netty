@@ -47,6 +47,9 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
     private final Map<ChannelOption<?>, Object> childOptions = new LinkedHashMap<ChannelOption<?>, Object>();
     private final Map<AttributeKey<?>, Object> childAttrs = new LinkedHashMap<AttributeKey<?>, Object>();
     private final ServerBootstrapConfig config = new ServerBootstrapConfig(this);
+    /**
+     * 是指执行任务的group
+     */
     private volatile EventLoopGroup childGroup;
     private volatile ChannelHandler childHandler;
 
@@ -74,9 +77,6 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
 
     /**
      * 给parentGroup和childGroup赋值
-     * Set the {@link EventLoopGroup} for the parent (acceptor) and the child (client). These
-     * {@link EventLoopGroup}'s are used to handle all the events and IO for {@link ServerChannel} and
-     * {@link Channel}'s.
      */
     public ServerBootstrap group(EventLoopGroup parentGroup, EventLoopGroup childGroup) {
         //prentGroup在父类AbstractBootstrap中
@@ -130,7 +130,7 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
     }
 
     /**
-     * Set the {@link ChannelHandler} which is used to serve the request for the {@link Channel}'s.
+     * 只是做了个赋值的操作，还没有创建channel
      */
     public ServerBootstrap childHandler(ChannelHandler childHandler) {
         if (childHandler == null) {
@@ -142,7 +142,7 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
 
     @Override
     void init(Channel channel) throws Exception {
-        final Map<ChannelOption<?>, Object> options = options0();
+         final Map<ChannelOption<?>, Object> options = options0();
         synchronized (options) {
             setChannelOptions(channel, options, logger);
         }
@@ -169,7 +169,7 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
         synchronized (childAttrs) {
             currentChildAttrs = childAttrs.entrySet().toArray(newAttrArray(0));
         }
-
+        //往pipeline里添加了一个handler，这个handler的作用一是获取serverBootStrap里的handler，添加到pipeline，二是用channel的线程池执行初始化acceptor的任务
         p.addLast(new ChannelInitializer<Channel>() {
             @Override
             public void initChannel(final Channel ch) throws Exception {
@@ -224,6 +224,13 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
         ServerBootstrapAcceptor(
                 final Channel channel, EventLoopGroup childGroup, ChannelHandler childHandler,
                 Entry<ChannelOption<?>, Object>[] childOptions, Entry<AttributeKey<?>, Object>[] childAttrs) {
+            /**
+             * ch
+             * currentChildGroup
+             * currentChildHandler  就是我们手动添加的channelInitatiazier
+             * currentChildOptions
+             * currentChildAttrs
+             */
             this.childGroup = childGroup;
             this.childHandler = childHandler;
             this.childOptions = childOptions;

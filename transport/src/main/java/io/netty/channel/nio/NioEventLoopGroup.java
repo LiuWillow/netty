@@ -36,8 +36,8 @@ import java.util.concurrent.ThreadFactory;
 public class NioEventLoopGroup extends MultithreadEventLoopGroup {
 
     /**
-     * 用默认线程数创建一个实例，如果传入的线程数不为0，则使用该线程数，否则使用内核数* 2，只是做了部分数据的初始化
-     * 通常设置为1就行
+     * 用默认线程数创建一个实例，如果传入的线程数不为0，则使用该线程数，否则使用内核数* 2，通常设置为1就行
+     * 初始化内部的NioEventLoop数组，每一个nioEventLoop中都打开了一个selector，赋值executor、选择策略，绑定 监听器
      */
     public NioEventLoopGroup() {
         this(0);
@@ -90,6 +90,7 @@ public class NioEventLoopGroup extends MultithreadEventLoopGroup {
      */
     public NioEventLoopGroup(int nThreads, Executor executor, final SelectorProvider selectorProvider,
                              final SelectStrategyFactory selectStrategyFactory) {
+        //默认的拒绝策略是直接抛异常
         super(nThreads, executor, selectorProvider, selectStrategyFactory, RejectedExecutionHandlers.reject());
     }
 
@@ -129,6 +130,7 @@ public class NioEventLoopGroup extends MultithreadEventLoopGroup {
 
     @Override
     protected EventLoop newChild(Executor executor, Object... args) throws Exception {
+        //将父类的parent赋值为当前对象，打开selector，初始化selector，赋值executor、选择策略，初始化了两个队列taskQueue和tailQueue
         return new NioEventLoop(this, executor, (SelectorProvider) args[0],
             ((SelectStrategyFactory) args[1]).newSelectStrategy(), (RejectedExecutionHandler) args[2]);
     }
