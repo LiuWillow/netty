@@ -281,9 +281,9 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
     }
 
     private ChannelFuture doBind(final SocketAddress localAddress) {
-        //用channelFactory反射创建channel，选择一个eventLoop异步注册channel，并返回注册任务的future
+        //用channelFactory反射创建channel，选择一个eventLoop，将注册任务放入队列异步执行，返回future，并返回注册任务的future
         final ChannelFuture regFuture = initAndRegister();
-        final Channel channel = regFuture.channel();
+        final Channel channel = regFuture.channel(); //TODO 注册完毕，到这里来，后面是绑定端口
         if (regFuture.cause() != null) {
             return regFuture;
         }
@@ -294,8 +294,8 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
             doBind0(regFuture, channel, localAddress, promise);
             return promise;
         } else {
-            // 万一任务还没完成，就给它加一个监听器，一旦监听到任务完成，就执行doBind0
             final PendingRegistrationPromise promise = new PendingRegistrationPromise(channel);
+            // 万一任务还没完成，就给它加一个监听器，一旦监听到任务完成，就执行doBind0
             regFuture.addListener(new ChannelFutureListener() {
                 @Override
                 public void operationComplete(ChannelFuture future) throws Exception {
@@ -307,7 +307,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
                     } else {
                         //设置registered为true
                         promise.registered();
-
+                        //这个方法里调用了eventLoop的execute，但是并不是启动一个线程去执行，而是打开了一个监听线程，添加一个任务到队列，这个任务内容是绑定channel到selector，并给这个channelFuture添加了一个绑定异常监听器，在遇到异常的时候关闭channel
                         doBind0(regFuture, channel, localAddress, promise);
                     }
                 }
@@ -334,7 +334,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
             return new DefaultChannelPromise(new FailedChannel(), GlobalEventExecutor.INSTANCE).setFailure(t);
         }
 
-        //选择一个eventLoop来执行异步注册，返回一个future，底层利用Jdk的nio
+        //选择一个eventLoop来执行注册，返回一个future，底层利用Jdk的nio
         ChannelFuture regFuture = config().group().register(channel);
         if (regFuture.cause() != null) {
             if (channel.isRegistered()) {

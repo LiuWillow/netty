@@ -419,12 +419,20 @@ public final class NioEventLoop extends SingleThreadEventLoop {
         }
     }
 
+    /**
+     * 主要做了三件事
+     * 1、轮询io事件
+     * 2、处理io事件
+     * 3、处理队列里的任务
+     */
     @Override
     protected void run() {
         for (;;) {
             try {
                 try {
-                    switch (selectStrategy.calculateStrategy(selectNowSupplier, hasTasks())) {
+                    //TODO 返回selector.selectorNow，非阻塞方法，没有事件返回0
+                    int strategy = selectStrategy.calculateStrategy(selectNowSupplier, hasTasks());
+                    switch (strategy) {
                     case SelectStrategy.CONTINUE:
                         continue;
 
@@ -479,7 +487,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                 cancelledKeys = 0;
                 needsToSelectAgain = false;
                 final int ioRatio = this.ioRatio;
-                if (ioRatio == 100) {
+                if (ioRatio == 100) { //初始值为50
                     try {
                         processSelectedKeys();
                     } finally {
@@ -488,11 +496,11 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                     }
                 } else {
                     final long ioStartTime = System.nanoTime();
-                    try {
+                    try {//处理接收到的事件
                         processSelectedKeys();
                     } finally {
                         // Ensure we always run tasks.
-                        final long ioTime = System.nanoTime() - ioStartTime;
+                        final long ioTime = System.nanoTime() - ioStartTime; //执行队列里的任务
                         runAllTasks(ioTime * (100 - ioRatio) / ioRatio);
                     }
                 }
@@ -553,7 +561,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
 
     @Override
     protected Runnable pollTask() {
-        Runnable task = super.pollTask();
+        Runnable task = super.pollTask(); //从taskQueue里头拿任务
         if (needsToSelectAgain) {
             selectAgain();
         }

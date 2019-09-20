@@ -391,7 +391,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
      * the tasks in the task queue and returns if it ran longer than {@code timeoutNanos}.
      */
     protected boolean runAllTasks(long timeoutNanos) {
-        fetchFromScheduledTaskQueue();
+        fetchFromScheduledTaskQueue(); //TODO 这个scheduledTask好像没见过
         Runnable task = pollTask();
         if (task == null) {
             afterRunningAllTasks();
@@ -754,6 +754,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
         }
 
         boolean inEventLoop = inEventLoop();
+        //将任务添加到taskQueue
         addTask(task);
         if (!inEventLoop) {
             startThread();
@@ -775,6 +776,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
         }
 
         if (!addTaskWakesUp && wakesUpForTask(task)) {
+            //TODO 唤醒selector，忘记啥意思了
             wakeup(inEventLoop);
         }
     }
@@ -863,6 +865,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
         if (state == ST_NOT_STARTED) {
             if (STATE_UPDATER.compareAndSet(this, ST_NOT_STARTED, ST_STARTED)) {
                 try {
+                    //调用threadFactory开启一个新线程
                     doStartThread();
                 } catch (Throwable cause) {
                     STATE_UPDATER.set(this, ST_NOT_STARTED);
@@ -892,6 +895,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
 
     private void doStartThread() {
         assert thread == null;
+        //启动一个新线程
         executor.execute(new Runnable() {
             @Override
             public void run() {
