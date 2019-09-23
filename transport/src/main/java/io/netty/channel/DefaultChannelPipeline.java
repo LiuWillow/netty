@@ -74,7 +74,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     private volatile MessageSizeEstimator.Handle estimatorHandle;
     private boolean firstRegistration = true;
 
-    /**
+    /** 是一个handler的回调任务链表，这个保存的是表头
      * This is the head of a linked list that is processed by {@link #callHandlerAddedForAllHandlers()} and so process
      * all the pending {@link #callHandlerAdded0(AbstractChannelHandlerContext)}.
      *
@@ -119,6 +119,9 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     }
 
     private AbstractChannelHandlerContext newContext(EventExecutorGroup group, String name, ChannelHandler handler) {
+        //group nul
+        //name 已经根据handler生成了，
+        //这里只是把当前的管道、executor、name、是否出入栈信息赋值给了父类，没有做其他见不得人的事情
         return new DefaultChannelHandlerContext(this, childExecutor(group), name, handler);
     }
 
@@ -199,12 +202,14 @@ public class DefaultChannelPipeline implements ChannelPipeline {
 
     @Override
     public final ChannelPipeline addLast(EventExecutorGroup group, String name, ChannelHandler handler) {
+        //group null
+        //name null
         final AbstractChannelHandlerContext newCtx;
         synchronized (this) {
             checkMultiplicity(handler);
-
+            //把这些信息封装成context
             newCtx = newContext(group, filterName(name, handler), handler);
-            //context加入联表
+            //把创建的context加入链表表，只是做了简单的链表指针的切换
             addLast0(newCtx);
 
             //启动的时候，还没有被注册，因此调用这里
@@ -213,6 +218,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
             // ChannelHandler.handlerAdded(...) once the channel is registered.
             if (!registered) {
                 newCtx.setAddPending();
+                //创建了一个handler生命周期函数回调的节点，并加入到pipeline的成员变量的表头中
                 callHandlerCallbackLater(newCtx, true);
                 return this;
             }
@@ -385,6 +391,8 @@ public class DefaultChannelPipeline implements ChannelPipeline {
             if (h == null) {
                 break;
             }
+            //executor null，
+            // 此处将传过去的参数包装成context，加入链表，然后生成一个回调任务，加入另一个链表
             addLast(executor, null, h);
         }
 
@@ -596,10 +604,15 @@ public class DefaultChannelPipeline implements ChannelPipeline {
         oldCtx.next = newCtx;
     }
 
+    /**
+     * 判断单例模式异常
+     * @param handler
+     */
     private static void checkMultiplicity(ChannelHandler handler) {
         if (handler instanceof ChannelHandlerAdapter) {
             ChannelHandlerAdapter h = (ChannelHandlerAdapter) handler;
             if (!h.isSharable() && h.added) {
+                //如果不是sharable（即非单例模式），且已经添加过了，就会报错，因为不能多次添加
                 throw new ChannelPipelineException(
                         h.getClass().getName() +
                         " is not a @Sharable handler, so can't be added or removed multiple times.");
@@ -1121,6 +1134,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
             this.pendingHandlerCallbackHead = null;
         }
 
+        //从头遍历所有的handlerAdded任务并执行
         // This must happen outside of the synchronized(...) block as otherwise handlerAdded(...) may be called while
         // holding the lock and so produce a deadlock if handlerAdded(...) will try to add another handler from outside
         // the EventLoop.
@@ -1133,7 +1147,9 @@ public class DefaultChannelPipeline implements ChannelPipeline {
 
     private void callHandlerCallbackLater(AbstractChannelHandlerContext ctx, boolean added) {
         assert !registered;
-
+        //创建一个callback，这个callback是一个runnable
+        //handlerAddedTask的任务是调用handler的handlerAdded生命周期函数
+        //handlerRemovedTask是调用handlerRemoved
         PendingHandlerCallback task = added ? new PendingHandlerAddedTask(ctx) : new PendingHandlerRemovedTask(ctx);
         PendingHandlerCallback pending = pendingHandlerCallbackHead;
         if (pending == null) {

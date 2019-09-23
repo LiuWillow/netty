@@ -276,18 +276,19 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
         if (localAddress == null) {
             throw new NullPointerException("localAddress");
         }
-        //netty标准，私有方法用do开头
+        //注册、绑定端口，打开selector接收IO事件
         return doBind(localAddress);
     }
 
     private ChannelFuture doBind(final SocketAddress localAddress) {
         //用channelFactory反射创建channel，选择一个eventLoop，将注册任务放入队列异步执行，返回future，并返回注册任务的future
         final ChannelFuture regFuture = initAndRegister();
-        final Channel channel = regFuture.channel(); //TODO 注册完毕，到这里来，后面是绑定端口
+        final Channel channel = regFuture.channel();
         if (regFuture.cause() != null) {
             return regFuture;
         }
 
+        //注册完毕，到这里来，后面是绑定端口
         if (regFuture.isDone()) {
             // 如果channel注册的任务已经完成了，就执行绑定
             ChannelPromise promise = channel.newPromise();
@@ -295,7 +296,8 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
             return promise;
         } else {
             final PendingRegistrationPromise promise = new PendingRegistrationPromise(channel);
-            // 万一任务还没完成，就给它加一个监听器，一旦监听到任务完成，就执行doBind0
+            // 万一任务还没完成，就给它加一个监听器，一旦监听到任务完成，就执行doBind0，而添加监听器的时候会立即判断一次是否完成，是的话马上执行监听器，
+            // 执行监听器的方式和之前注册一样，都是在一个循环里先接受事件、处理事件，最后执行队列任务
             regFuture.addListener(new ChannelFutureListener() {
                 @Override
                 public void operationComplete(ChannelFuture future) throws Exception {

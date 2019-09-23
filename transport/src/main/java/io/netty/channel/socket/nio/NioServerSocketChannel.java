@@ -85,7 +85,7 @@ public class NioServerSocketChannel extends AbstractNioMessageChannel
      * 用jdk的serverSocketChannel初始化nioServerSocketChannel
      */
     public NioServerSocketChannel(ServerSocketChannel channel) {
-        //将selectionKey保存到AbstractNioChannel类中，调用父类构造器，初始化channelId，unSafe工具类，pipeline头尾节点
+        //将selectionKey保存到AbstractNioChannel类中，把channel设置为非阻塞，调用父类构造器，初始化channelId，unSafe工具类，pipeline头尾节点
         super(null, channel, SelectionKey.OP_ACCEPT);
         config = new NioServerSocketChannelConfig(this, javaChannel().socket());
     }

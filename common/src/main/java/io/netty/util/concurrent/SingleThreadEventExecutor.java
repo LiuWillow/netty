@@ -865,7 +865,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
         if (state == ST_NOT_STARTED) {
             if (STATE_UPDATER.compareAndSet(this, ST_NOT_STARTED, ST_STARTED)) {
                 try {
-                    //调用threadFactory开启一个新线程
+                    //调用threadFactory开启一个新线程，用这个新的线程去再启动一个任务线程
                     doStartThread();
                 } catch (Throwable cause) {
                     STATE_UPDATER.set(this, ST_NOT_STARTED);
@@ -895,7 +895,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
 
     private void doStartThread() {
         assert thread == null;
-        //启动一个新线程
+        //启动一个新线程，执行SingleThreadEventExecutor里的run方法，这个方法里无限循环接收事件、处理事件、并处理任务
         executor.execute(new Runnable() {
             @Override
             public void run() {
@@ -906,7 +906,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
 
                 boolean success = false;
                 updateLastExecutionTime();
-                try {
+                try { //并没有启动线程，而是直接执行方法
                     SingleThreadEventExecutor.this.run();
                     success = true;
                 } catch (Throwable t) {

@@ -483,10 +483,12 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
             if (eventLoop.inEventLoop()) {
                 register0(promise);
             } else {
-                try {//把register0的任务放入队列，如果当前线程不处于eventLoop中，就新开一个线程并启动
+                try {
+                    //把register0的任务放入队列，如果当前线程不处于eventLoop中，就新开一个线程并启动
                     eventLoop.execute(new Runnable() {
                         @Override
                         public void run() {
+                            //执行注册任务，会触发handlerAdded回调和registered回调
                             register0(promise);
                         }
                     });
@@ -517,7 +519,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                 doRegister();
                 neverRegistered = false;
                 registered = true;
-                //
+                // 注册完以后，回调handlerAdded方法，也就是pipeline中的
                 // Ensure we call handlerAdded(...) before we actually notify the promise. This is needed as the
                 // user may already fire events through the pipeline in the ChannelFutureListener.
                 pipeline.invokeHandlerAddedIfNeeded();

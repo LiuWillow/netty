@@ -430,7 +430,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
         for (;;) {
             try {
                 try {
-                    //TODO 返回selector.selectorNow，非阻塞方法，没有事件返回0
+                    // 返回selector.selectorNow，非阻塞方法，没有事件返回0，如果没有task，返回-1
                     int strategy = selectStrategy.calculateStrategy(selectNowSupplier, hasTasks());
                     switch (strategy) {
                     case SelectStrategy.CONTINUE:
@@ -487,7 +487,8 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                 cancelledKeys = 0;
                 needsToSelectAgain = false;
                 final int ioRatio = this.ioRatio;
-                if (ioRatio == 100) { //初始值为50
+                if (ioRatio == 100) {
+                    //初始值为50，表示任务和事件的处理时间比例为1：1，如果是100，表示事件和任务全部处理完了再返回循环
                     try {
                         processSelectedKeys();
                     } finally {
@@ -496,11 +497,12 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                     }
                 } else {
                     final long ioStartTime = System.nanoTime();
-                    try {//处理接收到的事件
+                    try {
+                        //处理接收到的事件
                         processSelectedKeys();
                     } finally {
-                        // Ensure we always run tasks.
-                        final long ioTime = System.nanoTime() - ioStartTime; //执行队列里的任务
+                        final long ioTime = System.nanoTime() - ioStartTime;
+                        //执行队列里的任务，通过ioRatio设置执行任务的超时时间
                         runAllTasks(ioTime * (100 - ioRatio) / ioRatio);
                     }
                 }

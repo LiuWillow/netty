@@ -147,7 +147,7 @@ public class DefaultPromise<V> extends AbstractFuture<V> implements Promise<V> {
         synchronized (this) {
             addListener0(listener);
         }
-
+        //添加后立即判断一次是否完成，如果完成了就用eventLoop执行所有的监听器
         if (isDone()) {
             notifyListeners();
         }

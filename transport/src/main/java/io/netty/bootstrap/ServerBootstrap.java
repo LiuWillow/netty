@@ -170,6 +170,7 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
             currentChildAttrs = childAttrs.entrySet().toArray(newAttrArray(0));
         }
         //往pipeline里添加了一个handler，这个handler的作用一是获取serverBootStrap里的handler，添加到pipeline，二是用channel的线程池执行初始化acceptor的任务
+        //这个initializer会在register的register0里头回调handlerAdded方法的时候顺便调用
         p.addLast(new ChannelInitializer<Channel>() {
             @Override
             public void initChannel(final Channel ch) throws Exception {
@@ -182,8 +183,11 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
                 ch.eventLoop().execute(new Runnable() {
                     @Override
                     public void run() {
-                        pipeline.addLast(new ServerBootstrapAcceptor(
-                                ch, currentChildGroup, currentChildHandler, currentChildOptions, currentChildAttrs));
+                        //这里仅仅是把当前的channel，gourp，handler，配置和属性赋值
+                        ServerBootstrapAcceptor serverBootstrapAcceptor = new ServerBootstrapAcceptor(
+                                ch, currentChildGroup, currentChildHandler, currentChildOptions, currentChildAttrs);
+                        //将赋值后的对象添加到pipeline的队列中
+                        pipeline.addLast(serverBootstrapAcceptor);
                     }
                 });
             }
