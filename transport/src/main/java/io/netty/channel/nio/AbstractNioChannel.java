@@ -339,7 +339,7 @@ public abstract class AbstractNioChannel extends AbstractChannel {
             try {
                 boolean wasActive = isActive();
                 doFinishConnect();
-                fulfillConnectPromise(connectPromise, wasActive);
+                fulfillConnectPromise(connectPromise, wasActive);//这里回调了channelActive
             } catch (Throwable t) {
                 fulfillConnectPromise(connectPromise, annotateConnectException(t, requestedRemoteAddress));
             } finally {

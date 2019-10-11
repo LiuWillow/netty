@@ -79,12 +79,12 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
             AtomicReferenceFieldUpdater.newUpdater(
                     SingleThreadEventExecutor.class, ThreadProperties.class, "threadProperties");
 
-    private final Queue<Runnable> taskQueue;
+    private final Queue<Runnable> taskQueue;  //在EventLoopGroup初始化过程中，初始化children数组的时候赋值的
 
     private volatile Thread thread;
     @SuppressWarnings("unused")
     private volatile ThreadProperties threadProperties;
-    private final Executor executor;
+    private final Executor executor; //在EventLoopGroup初始化过程中，初始化children数组的时候，赋值了一个包含threadFactory的executor，调用execute可以创建线程
     private volatile boolean interrupted;
 
     private final Semaphore threadLock = new Semaphore(0);
@@ -101,7 +101,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
     private volatile long gracefulShutdownQuietPeriod;
     private volatile long gracefulShutdownTimeout;
     private long gracefulShutdownStartTime;
-
+    //在NioEventLoop初始化的时候被赋值的
     private final Promise<?> terminationFuture = new DefaultPromise<Void>(GlobalEventExecutor.INSTANCE);
 
     /**
@@ -757,6 +757,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
         //将任务添加到taskQueue
         addTask(task);
         if (!inEventLoop) {
+            //TODO 昨天看到这里
             startThread();
             if (isShutdown()) {
                 boolean reject = false;

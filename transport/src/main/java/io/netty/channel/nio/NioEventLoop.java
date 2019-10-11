@@ -140,9 +140,12 @@ public final class NioEventLoop extends SingleThreadEventLoop {
             throw new NullPointerException("selectStrategy");
         }
         provider = selectorProvider;
-        //TODO 打开nio的selector，并将tuple的unwrappedSelector和selector都赋值为该selector，也不知道有啥区别
+        // 打开nio的selector，获取原始的selector并包装成SelectedSelectionKeySetSelector，
+        // tuple只是做个包装
         final SelectorTuple selectorTuple = openSelector();
+        // 这里的selector实际上是SelectedSelectionKeySetSelector，真正的selector是它的delegate属性
         selector = selectorTuple.selector;
+        //这个是未包装过的jdk的selector
         unwrappedSelector = selectorTuple.unwrappedSelector;
         selectStrategy = strategy;
     }
@@ -440,6 +443,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                         // fall-through to SELECT since the busy-wait is not supported with NIO
 
                     case SelectStrategy.SELECT:
+                        //如果没有任务，就用selector去选择事件
                         select(wakenUp.getAndSet(false));
 
                         // 'wakenUp.compareAndSet(false, true)' is always evaluated
@@ -616,7 +620,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
             // null out entry in the array to allow to have it GC'ed once the Channel close
             // See https://github.com/netty/netty/issues/2363
             selectedKeys.keys[i] = null;
-
+            //事件里的attachment就是channel
             final Object a = k.attachment();
 
             if (a instanceof AbstractNioChannel) {
@@ -672,7 +676,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
                 int ops = k.interestOps();
                 ops &= ~SelectionKey.OP_CONNECT;
                 k.interestOps(ops);
-
+                //finishConnect，然后执行所有handler的channelActive方法
                 unsafe.finishConnect();
             }
 

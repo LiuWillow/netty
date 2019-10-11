@@ -42,11 +42,11 @@ import java.util.concurrent.atomic.AtomicReferenceFieldUpdater;
 /** 保存了ChannelHandlerContext的链表，pipeline通过其与handler进行交互
  * The default {@link ChannelPipeline} implementation.  It is usually created
  * by a {@link Channel} implementation when the {@link Channel} is created.
+ * 创建了nioEventLoop，打开了selector，打开了channel之后，才创建pipeline
  */
 public class DefaultChannelPipeline implements ChannelPipeline {
 
     static final InternalLogger logger = InternalLoggerFactory.getInstance(DefaultChannelPipeline.class);
-
     private static final String HEAD_NAME = generateName0(HeadContext.class);
     private static final String TAIL_NAME = generateName0(TailContext.class);
 
@@ -377,7 +377,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
     }
 
     @Override
-    public final ChannelPipeline addLast(ChannelHandler... handlers) {
+    public final ChannelPipeline addLast(ChannelHandler... handlers) { //serverBootStrap里传的new ChannelInitializer，在debug的时候体现为serverBootStrap，因为是个匿名内部类
         return addLast(null, handlers);
     }
 

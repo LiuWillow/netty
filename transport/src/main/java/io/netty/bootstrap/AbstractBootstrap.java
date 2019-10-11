@@ -309,7 +309,8 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
                     } else {
                         //设置registered为true
                         promise.registered();
-                        //这个方法里调用了eventLoop的execute，但是并不是启动一个线程去执行，而是打开了一个监听线程，添加一个任务到队列，这个任务内容是绑定channel到selector，并给这个channelFuture添加了一个绑定异常监听器，在遇到异常的时候关闭channel
+                        //这个方法里调用了eventLoop的execute，但是并不是启动一个线程去执行，而是打开了一个监听线程，添加一个任务到队列，
+                        // 这个任务内容是绑定channel到selector，并给这个channelFuture添加了一个绑定异常监听器，在遇到异常的时候关闭channel
                         doBind0(regFuture, channel, localAddress, promise);
                     }
                 }
@@ -323,7 +324,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
         try {
             //反射的方式创建NioServerSocketChannel，就是用jdk的provider创建channel，然后用netty的channel封装起来，并初始化pipeline
             channel = channelFactory.newChannel();
-            //初始化options、attributeKey，添加handlerAdded的task
+            //初始化options、attributeKey，往pipeline里addLast了一个，添加handlerAdded的task
             init(channel);
         } catch (Throwable t) {
             if (channel != null) {

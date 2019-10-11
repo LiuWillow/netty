@@ -488,7 +488,8 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                     eventLoop.execute(new Runnable() {
                         @Override
                         public void run() {
-                            //执行注册任务，会触发handlerAdded回调和registered回调
+                            //这个任务会在eventLoop.execute后隔一点点时间执行，注册任务，会触发handlerAdded回调和registered回调
+                            //注意此时是在pipeline创建完成，serverSocketChannel创建并初始化完成，还未注册和绑定
                             register0(promise);
                         }
                     });

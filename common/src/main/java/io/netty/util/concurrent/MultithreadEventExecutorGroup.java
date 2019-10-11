@@ -78,7 +78,7 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
             executor = new ThreadPerTaskExecutor(newDefaultThreadFactory());
         }
 
-        //TODO eventExecutorGroup和eventLoopGroup，为啥要这么定义
+        // eventExecutorGroup和eventLoopGroup，为啥要这么定义
         // eventLoop和eventExecutor本质是一个东西，loop集成executor，所以eventExecutorGroup和eventLoopGroup本质也差不多
         children = new EventExecutor[nThreads];
 
@@ -127,7 +127,7 @@ public abstract class MultithreadEventExecutorGroup extends AbstractEventExecuto
             }
         };
 
-        for (EventExecutor e: children) {
+        for (EventExecutor e: children) { //看到addListener应该想到future和promise
             e.terminationFuture().addListener(terminationListener);
         }
 
