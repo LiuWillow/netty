@@ -1128,7 +1128,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
 
             // This Channel itself was registered.
             registered = true;
-
+            //这个紫色的pendingHandlerCallbackHead是之前pipeline.addLast的时候，加的一个PendingHandlerAddedTask
             pendingHandlerCallbackHead = this.pendingHandlerCallbackHead;
             // Null out so it can be GC'ed.
             this.pendingHandlerCallbackHead = null;
@@ -1475,6 +1475,7 @@ public class DefaultChannelPipeline implements ChannelPipeline {
 
         @Override
         void execute() {
+            //其实就是eventLoop
             EventExecutor executor = ctx.executor();
             if (executor.inEventLoop()) {
                 callHandlerAdded0(ctx);

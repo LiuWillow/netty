@@ -48,7 +48,7 @@ public final class DefaultEventExecutorChooserFactory implements EventExecutorCh
 
     private static final class PowerOfTwoEventExecutorChooser implements EventExecutorChooser {
         private final AtomicInteger idx = new AtomicInteger();
-        private final EventExecutor[] executors;
+        private final EventExecutor[] executors;  //初始化eventLoopGroup时候传进来的children
 
         PowerOfTwoEventExecutorChooser(EventExecutor[] executors) {
             this.executors = executors;

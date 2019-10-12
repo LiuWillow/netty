@@ -757,7 +757,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
         //将任务添加到taskQueue
         addTask(task);
         if (!inEventLoop) {
-            //TODO 昨天看到这里
+
             startThread();
             if (isShutdown()) {
                 boolean reject = false;
@@ -859,6 +859,7 @@ public abstract class SingleThreadEventExecutor extends AbstractScheduledEventEx
     }
 
     // ScheduledExecutorService implementation
+
 
     private static final long SCHEDULE_PURGE_INTERVAL = TimeUnit.SECONDS.toNanos(1);
 

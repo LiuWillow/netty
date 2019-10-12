@@ -383,7 +383,7 @@ public abstract class AbstractNioChannel extends AbstractChannel {
     protected void doRegister() throws Exception {
         boolean selected = false;
         for (;;) {
-            try {
+            try { //注册了一个0事件，并没有实际意义，并且把当前的nioServerSocketChannel作为attr传入，便于下次监听到事件时获取，这里是channel是serverSocketChannel，但是eventLoop又是workerGroup里选出来的
                 selectionKey = javaChannel().register(eventLoop().unwrappedSelector(), 0, this);
                 return;
             } catch (CancelledKeyException e) {

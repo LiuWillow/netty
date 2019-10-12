@@ -187,7 +187,7 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
                         //这里仅仅是把当前的channel，group，handler，配置和属性赋值
                         ServerBootstrapAcceptor serverBootstrapAcceptor = new ServerBootstrapAcceptor(
                                 ch, currentChildGroup, currentChildHandler, currentChildOptions, currentChildAttrs);
-                        //将赋值后的对象添加到pipeline的队列中
+                        //将赋值后的对象添加到pipeline的队列中，然而此时注册已经完成，因此跟之前有一点点不同
                         pipeline.addLast(serverBootstrapAcceptor);
                     }
                 });
@@ -230,7 +230,7 @@ public class ServerBootstrap extends AbstractBootstrap<ServerBootstrap, ServerCh
                 final Channel channel, EventLoopGroup childGroup, ChannelHandler childHandler,
                 Entry<ChannelOption<?>, Object>[] childOptions, Entry<AttributeKey<?>, Object>[] childAttrs) {
             /**
-             * ch
+             * 在注册任务完成后，返回ChannelInitializer里头的runnable执行的
              * currentChildGroup
              * currentChildHandler  就是我们手动添加的channelInitatiazier
              * currentChildOptions

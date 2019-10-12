@@ -292,7 +292,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
         if (regFuture.isDone()) {
             // 如果channel注册的任务已经完成了，就执行绑定
             ChannelPromise promise = channel.newPromise();
-            doBind0(regFuture, channel, localAddress, promise);
+            doBind0(regFuture, channel, localAddress, promise); //另一种情况
             return promise;
         } else {
             final PendingRegistrationPromise promise = new PendingRegistrationPromise(channel);
@@ -337,8 +337,8 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
             return new DefaultChannelPromise(new FailedChannel(), GlobalEventExecutor.INSTANCE).setFailure(t);
         }
 
-        //选择一个eventLoop来执行注册，返回一个future，底层利用Jdk的nio
-        ChannelFuture regFuture = config().group().register(channel);
+        //选择一个eventLoop来执行注册，返回一个future，底层利用Jdk的nio，这里用的group是serverBootStrap里的group，即单线程group
+        ChannelFuture regFuture = config().group().register(channel);  //bossGroup的eventLoop的execute执行完register就回到这里
         if (regFuture.cause() != null) {
             if (channel.isRegistered()) {
                 channel.close();
@@ -371,6 +371,7 @@ public abstract class AbstractBootstrap<B extends AbstractBootstrap<B, C>, C ext
             @Override
             public void run() {
                 if (regFuture.isSuccess()) {
+                    //TODO 看到这里了
                     channel.bind(localAddress, promise).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
                 } else {
                     promise.setFailure(regFuture.cause());

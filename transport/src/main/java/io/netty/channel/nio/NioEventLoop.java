@@ -433,7 +433,7 @@ public final class NioEventLoop extends SingleThreadEventLoop {
         for (;;) {
             try {
                 try {
-                    // 返回selector.selectorNow，非阻塞方法，没有事件返回0，如果没有task，返回-1
+                    // 返回selector.selectorNow，非阻塞方法，没有事件返回0，如果没有task，返回-1，hasTasks判断tailTasks和taskQueue是否都为空
                     int strategy = selectStrategy.calculateStrategy(selectNowSupplier, hasTasks());
                     switch (strategy) {
                     case SelectStrategy.CONTINUE:

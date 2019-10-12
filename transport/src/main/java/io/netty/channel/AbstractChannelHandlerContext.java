@@ -139,7 +139,7 @@ abstract class AbstractChannelHandlerContext extends DefaultAttributeMap
             });
         }
     }
-
+    //头结点是个空节点，会直接执行这里
     private void invokeChannelRegistered() {
         if (invokeHandler()) {
             try {
