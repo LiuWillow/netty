@@ -578,7 +578,7 @@ public abstract class AbstractChannel extends DefaultAttributeMap implements Cha
                 closeIfClosed();
                 return;
             }
-
+            //如果之前不是active但是现在是active，则异步执行该任务
             if (!wasActive && isActive()) {
                 invokeLater(new Runnable() {
                     @Override

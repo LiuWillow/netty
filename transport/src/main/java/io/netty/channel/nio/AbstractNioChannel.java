@@ -417,7 +417,7 @@ public abstract class AbstractNioChannel extends AbstractChannel {
         readPending = true;
 
         final int interestOps = selectionKey.interestOps();
-        if ((interestOps & readInterestOp) == 0) {
+        if ((interestOps & readInterestOp) == 0) { //这个readInterestOp是ON_ACCEPT
             selectionKey.interestOps(interestOps | readInterestOp);
         }
     }
